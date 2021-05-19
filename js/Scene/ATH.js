@@ -1,20 +1,18 @@
-class Setting extends Phaser.Scene{
+class ATH extends Phaser.Scene{
 
     constructor(){
-        super("Setting");
+        super("ATH");
 
         
     }
 
     preload(){
-
     }
 
     create(){
-
+        this.scene.launch('Game');
     }
 
     update(time, delta){
-        
     }
 }
