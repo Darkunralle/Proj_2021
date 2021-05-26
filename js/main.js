@@ -5,8 +5,8 @@
 var config = {
     type: Phaser.AUTO,
     // Dimension
-    width: 1920,
-    height: 1080,
+    width: 1280,
+    height: 720,
     backgroundColor: '#FFFFFF',
     // Moteur physique
     physics: {
@@ -17,13 +17,14 @@ var config = {
         }
     },
 
-    scene: [Game]
+    scene: [ATH,Game]
 
     
 };
 
 
 var game = new Phaser.Game(config);
+
 
 //Déclaration variables
 //Joueur

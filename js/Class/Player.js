@@ -4,6 +4,10 @@ class player extends character{
 
         this.inputs = _inputs;
         this.scene = scene;
+        this.spellBook = spellBook;
+
+        this.life = 100;
+        this.mana = 100;
 
         // Animation
 
@@ -23,27 +27,20 @@ class player extends character{
 
         this.anims.play('idle',true);
 
-        this.scene = scene;
 
-        this.spellBook = spellBook;
-
-        this.direction = false;
 
         this.stance = "fire";
         console.log(this.stance);
 
         this.mouse;
+
         this.posX;
         this.posY;
         this.tan;
 
         this.teleportRange = 100;
 
-        this.dashCD = false;
-        this.dashTimerEv;
-
-        this.stanceCD = false;
-        this.stanceCdEvent;
+        this.dashCD = 5;
 
         this.LayerOne = LayerOne;
 
@@ -51,36 +48,43 @@ class player extends character{
         this.guardGauge = this.guardGaugeMax;
 
 
+        // 0 -> ChangeMod
+        // 1 -> TP
+        // 2/4 -> FireSpell // Clic mouse / A / E
+        // 5/7 -> FrostSpell
+        // 8/10 -> ArcaneSpell
+        this.cooldown = [0,0,0,0,0,0,0,0,0,0,0];
+
         // Spell CD
 
         // Fire Spell
-        // Fireball
         this.newFireball;
-        this.fireballCD = 1;
-        this.fireballOnCD = false;
-        this.fireballCdEvent;
+        this.newPyroblast;
+        this.newImmolate;
+
+        // Frost Spell
+        this.newIcebolt;
+        this.newConeOfCold;
+        this.newFrostShield;
 
         // Thunder Spell
-        // Arcane Orb
+        this.newArcaneProjectil;
         this.newArcaneOrb;
-        this.ArcaneOrbCD = 5;
-        this.ArcaneOrbOnCD = false;
-        this.ArcaneOrbCdEvent;
-
-
-        // test
-
+        this.newNova;
+    
+        // Indicateur
         this.indic = scene.physics.add.image();
         this.indic.body.setAllowGravity(false);
         this.indic.setDebugBodyColor(0xff0000);
-        this.indic.body.setSize(5,5);
+        this.indic.body.setSize(5,5);  
 
-
-        
-        
+        this.nCooldown = 0;
     }
 
-    
+    setLife(damage){
+        this.life -= damage;
+        console.log(this.life);
+    }
 
     // Fonction de translation sur l'axe X
     speedX(speed){
@@ -129,11 +133,10 @@ class player extends character{
     attackFunc(){
         if(this.mouse.leftButtonDown()){
             if(this.stance == "fire"){
-                if(this.fireballOnCD == false){
+                if(this.cooldown[2] == 0){
                     this.newFireball = new Fireball(this.scene,this.mouse,this.x,this.y);
                     this.spellBook[0].add(this.newFireball);
-                    this.fireballOnCD = true;
-                    this.fireballCdEvent = this.scene.time.delayedCall(this.fireballCD*1000, this.skillFireMCL, [], this);
+                    this.cooldown[2] = this.newFireball.cd;
                 }
                 
             }else if(this.stance == "frost"){
@@ -148,11 +151,10 @@ class player extends character{
             }else if(this.stance == "frost"){
 
             }else{
-                if(this.ArcaneOrbOnCD == false){
+                if(this.cooldown[9] == 0){
                     this.newArcaneOrb = new ArcaneOrb(this.scene,this.mouse,this.x,this.y);
                     this.spellBook[1].add(this.newArcaneOrb);
-                    this.ArcaneOrbOnCD = true;
-                    this.ArcaneOrbCdEvent = this.scene.time.delayedCall(this.ArcaneOrbCD*1000, this.skillThunderA, [], this);
+                    this.cooldown[9] = this.newArcaneOrb.cd;
                 }
             }  
         }
@@ -167,18 +169,6 @@ class player extends character{
         }     
     }
 
-    collide(world){
-        this.scene.physics.add.collider(this, world);
-    }
-
-    overlap(world){
-        this.scene.physics.add.overlap(this, world);
-    }
-
-    setCam(){
-        this.scene.cameras.main.startFollow(this);
-    }
-
     indicator(){
         
         this.posX = this.mouse.worldX-this.x;
@@ -189,7 +179,7 @@ class player extends character{
         if(this.tan <= this.teleportRange){
             this.indic.x = this.mouse.worldX;
             this.indic.y = this.mouse.worldY;
-            //Ajouter des conditions
+            
         }else{
             this.indic.x = this.x + this.posX * 100 / this.tan;
             this.indic.y = this.y + this.posY * 100 / this.tan;
@@ -197,25 +187,23 @@ class player extends character{
     }
 
     changeStance(){
-        if(this.inputs[8].isDown && this.stanceCD == false){
+        if(this.inputs[8].isDown && this.cooldown[0] == 0){
             if(this.stance == "fire"){
                 this.stance = "frost";
             } else if(this.stance == "frost"){
                 this.stance = "thunder";
             } else{this.stance = "fire"}
             console.log(this.stance);
-            this.stanceCD = true;
-            this.stanceCdEvent = this.scene.time.delayedCall(1000, this.stanceEvent, [], this);
+            this.cooldown[0] = 1;
         }
     }
 
     dash(){
-        if(this.inputs[5].isDown && this.dashCD == false){
+        if(this.inputs[5].isDown && this.cooldown[1] == 0){
             if (this.LayerOne.getTileAtWorldXY(this.indic.x, this.indic.y)== null) {
                 this.x = this.indic.x;
                 this.y = this.indic.y;
-                this.dashCD = true;
-                this.dashTimerEv = this.scene.time.delayedCall(5000, this.dashCdFunc, [], this);
+                this.cooldown[1] = this.dashCD;
             }
         }
     }
@@ -226,57 +214,28 @@ class player extends character{
 
     update (time, delta)
     {
+        this.nCooldown += delta/1000;
+        if(this.nCooldown > 1){
+            for(var i = 0; i< this.cooldown.length;i++){
+                if(this.cooldown[i] > 0){
+                    this.cooldown[i] -= 1;
+                }
+            }
+
+            if(this.mana < 100){
+                this.mana += 2;
+                if(this.mana >100){this.mana=100;}
+            }
+            
+            this.nCooldown = 0;
+        }
+        
         this.mouse = this.scene.input.activePointer;
         this.movefunc();
         this.attackFunc();
         this.indicator();
         this.changeStance();
         this.dash();
-    }
-
-    // Fonction event CD
-    dashCdFunc(){
-        this.dashCD = false;
-    }
-    stanceEvent(){
-        this.stanceCD = false;
-    }
-    // Sort de feu
-    skillFireMCL(){
-        this.fireballOnCD = false;
-    }
-    
-    skillFireA(){
 
     }
-    
-    skillFireE(){
-
-    }
-    // Sort de glace
-    skillFrostMCL(){
-
-    }
-    
-    skillFrostA(){
-
-    }
-    
-    skillFrostE(){
-
-    }
-    // Sort de foudre
-    skillThunderMCL(){
-
-    }
-    
-    skillThunderA(){
-        this.ArcaneOrbOnCD = false;
-    }
-    
-    skillThunderE(){
-
-    }
-
-
 }

@@ -6,7 +6,7 @@ class Game extends Phaser.Scene{
     
 
     preload() {
-        this.load.image('fireball', "assets/anim/FireballTest.png")
+        this.load.image('fireball', "assets/anim/FireballX2.png")
         // Sprite du joueur
         this.load.spritesheet('MainPlayerModel', 'assets/anim/SPMTest.png', { frameWidth: 16, frameHeight: 32 });
         this.load.spritesheet('EnemyPlayerModel', 'assets/anim/EnemyTest.png', { frameWidth: 16, frameHeight: 32 });
@@ -39,6 +39,10 @@ class Game extends Phaser.Scene{
         var _inputs = new inputs(this);
         var newPlayer = new player(this,_inputs.playerConfig[0],80,350,spellBook,LayerOne);
         _Player.add(newPlayer);
+
+        this.cameras.main.startFollow(newPlayer);
+        this.cameras.main.setBounds(0, 0, map.widthInPixels, 600);
+        this.physics.world.bounds.setTo(0, 0, map.widthInPixels, 600);
     
         demon = this.add.group({
             clasType: ennemy,
@@ -46,7 +50,7 @@ class Game extends Phaser.Scene{
         })
     
         for (var i = 0; i< 1;i++){
-            var newDemon = new ennemy(this,500+50*i,350,_Player);
+            var newDemon = new ennemy(this,500+50*i,350,_Player,"arcane");
             demon.add(newDemon);
         }
         
@@ -74,12 +78,9 @@ class Game extends Phaser.Scene{
         console.log("boom");
     }
 
-    spellCollid(a,b){
-        a.destroy();
-        b.setLife(2);
-        if(b.life <= 0){
-            b.y = 1000;
-        }
+    spellCollid(spell,target){
+        spell.destroy();
+        target.setLife(spell.damage,spell.type);
     }
 
     spellBookInit(){
