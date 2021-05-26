@@ -1,10 +1,9 @@
 class player extends character{
-    constructor(scene,_inputs, x ,y,spellBook,LayerOne){
+    constructor(scene,_inputs, x ,y){
         super(scene, x, y, 'MainPlayerModel' );
 
         this.inputs = _inputs;
         this.scene = scene;
-        this.spellBook = spellBook;
 
         this.life = 100;
         this.mana = 100;
@@ -42,8 +41,6 @@ class player extends character{
 
         this.dashCD = 5;
 
-        this.LayerOne = LayerOne;
-
         this.guardGaugeMax =100;
         this.guardGauge = this.guardGaugeMax;
 
@@ -79,11 +76,29 @@ class player extends character{
         this.indic.body.setSize(5,5);  
 
         this.nCooldown = 0;
+
+        this.onIndic = false;
+
+        scene.physics.add.overlap(this.indic,demon,this.immolate, null, this);
+    }
+
+    immolate(zone, demon){
+        if(this.onIndic == true){
+            demon.setOnFire(specialSpell[3].dot,specialSpell[3].dotDuration);
+            this.cooldown[4] = specialSpell[3].cd;
+            this.onIndic = false;
+        }
+        
     }
 
     setLife(damage){
-        this.life -= damage;
+        if(specialSpell[1].charge >= 0){
+            this.life -= damage - specialSpell[1].res;
+            specialSpell[1].charge -= 1
+        }else{this.life -= damage;}
+
         console.log(this.life);
+        
     }
 
     // Fonction de translation sur l'axe X
@@ -111,12 +126,14 @@ class player extends character{
         if (this.inputs[2].isDown) {
             this.speedX(-150);
             this.direction = true;
+            leftBool = true;
 
         }
         // move right
         if (this.inputs[3].isDown) {
             this.speedX(150);
             this.direction = false;
+            leftBool = false;
 
         }
         if ((this.inputs[1].isUp && this.inputs[0].isDown) && this.body.onFloor()){
@@ -131,40 +148,70 @@ class player extends character{
     }
 
     attackFunc(){
+        // Fire , Pyro / 0,1
+        // Bolt / 2
+        // Shoot , orb / 3,4
         if(this.mouse.leftButtonDown()){
             if(this.stance == "fire"){
                 if(this.cooldown[2] == 0){
                     this.newFireball = new Fireball(this.scene,this.mouse,this.x,this.y);
-                    this.spellBook[0].add(this.newFireball);
+                    spellBook[0].add(this.newFireball);
                     this.cooldown[2] = this.newFireball.cd;
                 }
                 
             }else if(this.stance == "frost"){
-
+                if(this.cooldown[5] == 0){
+                    this.newIcebolt = new Icebolt(this.scene,this.mouse,this.x,this.y);
+                    spellBook[2].add(this.newIcebolt);
+                    this.cooldown[5] = this.newIcebolt.cd;
+                }
             }else{
-                
+                if(this.cooldown[8] == 0){
+                    this.newArcaneShoot = new ArcaneShoot(this.scene,this.mouse,this.x,this.y);
+                    spellBook[3].add(this.newArcaneShoot);
+                    this.cooldown[8] = this.newArcaneShoot.cd;
+                }
             }
         }
         if(this.inputs[6].isDown){
             if(this.stance == "fire"){
-                
+                if(this.cooldown[3] == 0){
+                    this.newPyroblast = new Pyroblast(this.scene,this.mouse,this.x,this.y);
+                    spellBook[1].add(this.newPyroblast);
+                    this.cooldown[3] = this.newPyroblast.cd;
+                }
             }else if(this.stance == "frost"){
-
+                if(this.cooldown[6] == 0){
+                    specialSpell[2].activate = true;
+                    this.cooldown[6] = specialSpell[2].cd;
+                }
             }else{
                 if(this.cooldown[9] == 0){
                     this.newArcaneOrb = new ArcaneOrb(this.scene,this.mouse,this.x,this.y);
-                    this.spellBook[1].add(this.newArcaneOrb);
+                    spellBook[4].add(this.newArcaneOrb);
                     this.cooldown[9] = this.newArcaneOrb.cd;
                 }
             }  
         }
         if(this.inputs[7].isDown){
             if(this.stance == "fire"){
-
+                if(this.cooldown[4] == 0){
+                    if(this.onIndic == true){
+                        
+                        this.cooldown[4] = this.newImmolate.cd;
+                    }
+                    
+                }
             }else if(this.stance == "frost"){
-
+                if(this.cooldown[7] == 0){
+                    specialSpell[1].refreshDuration();
+                    this.cooldown[7] = specialSpell[1].cd;
+                }
             }else{
-
+                if(this.cooldown[10] == 0){
+                    specialSpell[0].activate = true;
+                    this.cooldown[10] = specialSpell[0].cd;
+                }
             } 
         }     
     }
@@ -200,7 +247,7 @@ class player extends character{
 
     dash(){
         if(this.inputs[5].isDown && this.cooldown[1] == 0){
-            if (this.LayerOne.getTileAtWorldXY(this.indic.x, this.indic.y)== null) {
+            if (LayerOne.getTileAtWorldXY(this.indic.x, this.indic.y)== null) {
                 this.x = this.indic.x;
                 this.y = this.indic.y;
                 this.cooldown[1] = this.dashCD;

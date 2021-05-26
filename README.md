@@ -2,6 +2,9 @@
 Projet fin première année (jeu)
 
 
-19/05/21 : a faire
+a faire
 
 *Faire une rotation sur les sorts 
+*Regler la cam
+*S'occuper du sort Immolate
+*Amélioré l'IA
