@@ -2,6 +2,7 @@ class Game extends Phaser.Scene{
 
     constructor(){
         super("Game");
+
     }
     
 
@@ -17,9 +18,6 @@ class Game extends Phaser.Scene{
     
     // Creation des plateformes et collide
     create() {
-        this.spellBookInit()
-
-
         // Création de la map
         const map = this.make.tilemap({key:'map'});
         const tilesetTest = map.addTilesetImage("TestAsset", 'tile',16,16);
@@ -35,27 +33,34 @@ class Game extends Phaser.Scene{
             classType: player,
             runChildUpdate: true,
         });
+
+        demon = this.add.group({
+            clasType: ennemy,
+            runChildUpdate: true,
+        })
+
+        this.spellBookInit();
+        this.specialSpellInit();
         
         var _inputs = new inputs(this);
-        var newPlayer = new player(this,_inputs.playerConfig[0],80,350,spellBook,LayerOne);
+        newPlayer = new player(this,_inputs.playerConfig[0],80,350);
         _Player.add(newPlayer);
 
         this.cameras.main.startFollow(newPlayer);
         this.cameras.main.setBounds(0, 0, map.widthInPixels, 600);
         this.physics.world.bounds.setTo(0, 0, map.widthInPixels, 600);
+        //this.cameras.main.setFollowOffset(200);
+
     
-        demon = this.add.group({
-            clasType: ennemy,
-            runChildUpdate: true,
-        })
+        
     
         for (var i = 0; i< 1;i++){
-            var newDemon = new ennemy(this,500+50*i,350,_Player,"arcane");
+            var newDemon = new ennemy(this,500+50*i,350,"arcane");
             demon.add(newDemon);
         }
         
     
-    
+
     
     
         this.physics.add.collider(_Player, LayerOne);
@@ -64,18 +69,7 @@ class Game extends Phaser.Scene{
         for(var i = 0; i< spellBook.length;i++){
             this.physics.add.collider(spellBook[i], LayerOne);
             this.physics.add.collider(spellBook[i], demon, this.spellCollid);
-        }
-        
-        //this.physics.add.overlap(demon,_Player,this.detection);
-        
-    }
-    
-    update(time, delta) {
-    
-    }
-
-    detection(a,b){
-        console.log("boom");
+        }     
     }
 
     spellCollid(spell,target){
@@ -84,6 +78,8 @@ class Game extends Phaser.Scene{
     }
 
     spellBookInit(){
+        // Projectile
+        // Fire
         var spellFireball = this.add.group({
             classType: Fireball,
             runChildUpdate: true,
@@ -91,11 +87,78 @@ class Game extends Phaser.Scene{
         });
         spellBook.push(spellFireball);
 
+        var spellPyroblast = this.add.group({
+            classType: Pyroblast,
+            runChildUpdate: true,
+
+        });
+        spellBook.push(spellPyroblast);
+
+        // Frost
+        var spellIcebolt = this.add.group({
+            classType: Icebolt,
+            runChildUpdate: true,
+
+        });
+        spellBook.push(spellIcebolt);
+
+        // arcane
+        var spellArcaneShoot = this.add.group({
+            classType: ArcaneShoot,
+            runChildUpdate: true,
+
+        });
+        spellBook.push(spellArcaneShoot);
+
         var spellArcaneOrb = this.add.group({
             classType: ArcaneOrb,
             runChildUpdate: true,
 
         });
         spellBook.push(spellArcaneOrb);
+    }
+
+    specialSpellInit(){
+        var spellNova = this.add.group({
+            classType: Nova,
+            runChildUpdate: true,
+        });
+        var newNova = new Nova(this,0,0);
+        spellNova.add(newNova);
+        specialSpell.push(newNova);
+
+        // -------------------------------------------------- //
+
+        var spellFrostShield = this.add.group({
+            classType: FrostShield,
+            runChildUpdate: true,
+        });
+        var newFrostShield = new FrostShield(this,0,0);
+        spellFrostShield.add(newFrostShield);
+        specialSpell.push(newFrostShield);
+
+        // -------------------------------------------------- //
+
+        var spellConeOfCold = this.add.group({
+            classType: ConeOfCold,
+            runChildUpdate: true,
+        });
+        var newConeOfCold = new ConeOfCold(this,0,0);
+        spellConeOfCold.add(newConeOfCold);
+        specialSpell.push(newConeOfCold);
+        
+        // -------------------------------------------------- //
+        
+        var spellImmolate = this.add.group({
+            classType: Immolate,
+            runChildUpdate: true,
+        });
+        var newImmolate = new Immolate(this,0,0);
+        spellImmolate.add(newImmolate);
+        specialSpell.push(newImmolate);
+    }
+
+    update(time, delta) {
+        
     }
 }

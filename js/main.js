@@ -35,7 +35,15 @@ var tilesetTest;
 //Plateform with tiled
 var LayerOne;
 
-var demon = null;
+var demon;
 // Preload des assets
 
 var spellBook = [];
+
+var newPlayer;
+
+// Sort sans projectile
+var specialSpell = [];
+
+// Donne la direction du joueur
+var leftBool = false;

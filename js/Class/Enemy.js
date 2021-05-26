@@ -1,10 +1,12 @@
 class ennemy extends character{
-    constructor(scene, _x ,_y,targetPlayer, type){
+    constructor(scene, _x ,_y, type){
         super(scene, _x, _y, 'EnemyPlayerModel' );
 
         this.life = 20;
-
         this.alive = true;
+
+        this.speed = 80;
+        this.slow = false;
 
         this.type = type;
         this.counterType = this.setCounterType();
@@ -15,6 +17,9 @@ class ennemy extends character{
         this.atkTimer = 3;
 
         this.timer = 0;
+
+        this.dot;
+        this.dotDuration;
 
         // Box détection
         this.detect = scene.physics.add.image();
@@ -36,8 +41,21 @@ class ennemy extends character{
         this.origineX = this.x; 
         this.origineY = this.y; 
         
-        scene.physics.add.overlap(this.detect,targetPlayer,this.detection, null, this);
-        scene.physics.add.overlap(this.attack,targetPlayer,this.attackfunc, null, this);
+        scene.physics.add.overlap(this.detect,_Player,this.detection, null, this);
+        scene.physics.add.overlap(this.attack,_Player,this.attackfunc, null, this);
+    }
+
+    setOnFire(dot,dotDuration){
+        this.dot = dot;
+        this.dotDuration = dotDuration;
+    }
+
+    getSpeed(){
+        if(this.slow == false){
+            return this.speed;
+        }else if(this.slow == true){
+            return this.speed *0.6;
+        }
     }
 
     attackfunc(box , target){
@@ -100,10 +118,10 @@ class ennemy extends character{
             // Retour spawn
             if (this.chasing == 0){
                 if(this.x < this.origineX-1){
-                    this.body.setVelocityX(80);
+                    this.body.setVelocityX(this.speed);
                 }
                 if(this.x > this.origineX+1){
-                    this.body.setVelocityX(-80);
+                    this.body.setVelocityX(this.speed*-1);
                 }
             }
     
@@ -121,9 +139,9 @@ class ennemy extends character{
     detection(a,b){
         if(b.x+20 < this.x && this.chasing > 0 ){
             this.left = true;
-            this.body.setVelocityX(-80);
+            this.body.setVelocityX(this.getSpeed()*-1);
         } else if(b.x-20 > this.x && this.chasing > 0){
-            this.body.setVelocityX(80);
+            this.body.setVelocityX(this.getSpeed());
             this.left = false;
         }
         
@@ -132,14 +150,20 @@ class ennemy extends character{
     }
 
     update(time,delta){
-        this.timer += delta/1000;
-        if(this.timer > 1){
-            if(this.atkOn = true){
+        if(this.atkOn == true || this.dotDuration > 0){
+            this.timer += delta/1000;
+            if(this.timer > 1){
                 if(this.atkTimer > 0){this.atkTimer -= 1}
+                if(this.dotDuration > 0){
+                    this.dotDuration -= 1;
+                    this.life -= this.dot;
+                    console.log(this.life);
+                }
+                this.timer = 0;
             }
-            
-            this.timer = 0;
         }
+        
+        
 
         this.detectPlacement();
         this.chase();

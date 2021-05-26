@@ -19,6 +19,21 @@ class Spell extends Phaser.Physics.Arcade.Sprite {
     }
 }
 
+class SpecialSpell extends Phaser.Physics.Arcade.Sprite {
+    
+    constructor(scene,skin,x,y){
+        super(scene,skin,x,y);
+
+        this.damage = 1;
+        this.type = null;
+        this.cd = 2;
+        this.manaCost = 0;
+
+        this.timer = 0;
+
+    }
+}
+
 // Fire Spell
 
 class Fireball extends Spell {
@@ -60,18 +75,20 @@ class Pyroblast extends Spell {
     }
 }
 
-class Immolate extends Spell {
+class Immolate extends SpecialSpell {
 
-    constructor(scene,mouse,x,y){
+    constructor(scene,x,y){
         super(scene,x,y,'immolate');
 
+        this.dot = 5;
+        this.dotDuration = 5;
         this.damage = 10;
         this.type = "fire";
 
         this.manaCost = 20;
     }
 
-    update(){
+    update(time, delta){
     }
 }
 
@@ -94,37 +111,81 @@ class Icebolt extends Spell {
     }
 }
 
-class ConeOfCold extends Spell {
+class ConeOfCold extends SpecialSpell {
 
-    constructor(scene,mouse,x,y){
+    constructor(scene,x,y){
         super(scene,x,y,'coneOfCold');
 
-        this.damage = 10;
+        this.damage = 20;
         this.type = "frost";
 
-        this.scene.physics.moveToObject(this, mouse, 300);
+        this.cd = 8;
+
+        this.range = scene.physics.add.image();
+        this.range.body.setAllowGravity(false);
+        this.range.body.setSize(128,96);
+
+        this.activate = false;
+
+        scene.physics.add.overlap(this.range,demon,this.ConeDamage, null, this);
     }
 
-    update(){
+    ConeDamage(spell, target){
+        if(this.activate == true){
+            target.setLife(this.damage,this.type);
+            this.activate = false;
+        }
+    }
+
+    update(time, delta){
+        if (leftBool == true){
+            this.range.x = newPlayer.x-64;
+            this.range.y = newPlayer.y;
+        }else{
+            this.range.x = newPlayer.x+64;
+            this.range.y = newPlayer.y;
+        }
+
+        if(this.activate == true){
+            this.timer += delta/1000;
+            if(this.timer > 2){
+                this.activate = false; 
+                this.timer = 0;
+            }
+        }
     }
 }
 
-class FrostShield extends Spell {
+class FrostShield extends SpecialSpell {
 
-    constructor(scene,mouse,x,y){
+    constructor(scene,x,y){
         super(scene,x,y,'frostShield');
 
         this.type = "frost";
+        this.damage = 0;
 
-        this.damage = 10;
         this.cd = 30;
-        this.duration = 60;
-        this.res = 10;
-        this.charge = 10;
+        this.durationMax = 60;
+        this.duration = 0;
+
+        this.res = 5;
+        this.charge = 5;
 
     }
 
-    update(){
+    refreshDuration(){
+        this.duration = this.durationMax;
+        this.charge = 5;
+    }
+
+    update(time, delta){
+        if(this.duration > 0 ){
+            this.timer += delta/1000;
+            if(this.timer > 1){
+                this.duration -= 1
+                this.timer = 0;
+            }
+        }
     }
 }
 
@@ -133,9 +194,9 @@ class ArcaneShoot extends Spell {
     constructor(scene,mouse,x,y){
         super(scene,x,y,'arcaneShoot');
 
-        this.damage = 30;
+        this.damage = 15;
         this.type = "arcane";
-        this.cd = 5;
+        this.cd = 2;
         this.scene.physics.moveToObject(this, mouse, 100);
         
     }
@@ -157,28 +218,64 @@ class ArcaneOrb extends Spell {
         this.type = "arcane";
         this.cd = 5;
         this.scene.physics.moveToObject(this, mouse, 100);
+        this.body.setSize(16,16);
+
+        this.timer = 0;
         
     }
 
-    update(){
+    update(time, delta){
 
         if(this.body.onWall()|| this.body.onCeiling()|| this.body.onFloor()){
             this.destroy();
 
+        }else{
+            this.timer += delta/1000;
+            if(this.timer > 2){
+                this.body.setSize(32,32);
+                this.timer = 0;
         }
+    }
     }
 }
 
-class Nova extends Spell {
-    constructor(scene,mouse,x,y){
-        super(scene,x,y,'nova');
+class Nova extends SpecialSpell {
+    constructor(scene,x,y){
+        super(scene,x,y,);
 
-        this.damage = 30;
+        this.damage = 20;
         this.type = "arcane";
         this.cd = 5;
+
+        this.manaCost = 25;
+
+        this.range = scene.physics.add.image();
+        this.range.body.setAllowGravity(false);
+        this.range.body.setSize(128,128);
+
+        this.activate = false;
+        scene.physics.add.overlap(this.range,demon,this.novaDamage, null, this);
         
     }
 
-    update(){
+    novaDamage(zone, target){
+        if(this.activate == true){
+            target.setLife(this.damage,this.type);
+            this.activate = false;
+        }
+    }
+
+    update(time, delta){
+        this.range.x = newPlayer.x;
+        this.range.y = newPlayer.y;
+
+        if(this.activate == true){
+            this.timer += delta/1000;
+            if(this.timer > 2){
+                this.activate = false; 
+                this.timer = 0;
+            }
+        }
+        
     }
 }
